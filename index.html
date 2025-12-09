@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GaintBypass 1.0.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #00f2ff;
+            --secondary: #7b2ff7;
+            --accent: #ff2e97;
+            --dark: #0a0a0f;
+            --darker: #050508;
+            --card-bg: rgba(15, 15, 25, 0.6);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glow: 0 0 30px rgba(0, 242, 255, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--darker);
+            color: #fff;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(123, 47, 247, 0.15), transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(0, 242, 255, 0.15), transparent 50%),
+                        radial-gradient(circle at 40% 20%, rgba(255, 46, 151, 0.1), transparent 50%);
+            animation: gradientShift 15s ease infinite;
+            z-index: -1;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.1); }
+        }
+
+        #particles {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        #loading-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--darker);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+
+        #loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loader-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+        }
+
+        .loader-ring {
+            position: absolute;
+            border: 3px solid transparent;
+            border-radius: 50%;
+            animation: spin 2s linear infinite;
+        }
+
+        .loader-ring:nth-child(1) {
+            width: 160px;
+            height: 160px;
+            border-top-color: var(--primary);
+            top: 20px;
+            left: 20px;
+            animation-duration: 2s;
+        }
+
+        .loader-ring:nth-child(2) {
+            width: 120px;
+            height: 120px;
+            border-right-color: var(--secondary);
+            top: 40px;
+            left: 40px;
+            animation-duration: 1.5s;
+            animation-direction: reverse;
+        }
+
+        .loader-ring:nth-child(3) {
+            width: 80px;
+            height: 80px;
+            border-bottom-color: var(--accent);
+            top: 60px;
+            left: 60px;
+            animation-duration: 1s;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 30px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: pulse 2s ease infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        nav.scrolled {
+            padding: 1rem 5%;
+            box-shadow: 0 10px 40px rgba(0, 242, 255, 0.1);
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 500;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .cta-button {
+            padding: 0.8rem 2rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 50px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 242, 255, 0.4);
+        }
+
+        .cta-button:hover::before {
+            opacity: 1;
+        }
+
+        .cta-button span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 5%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            max-width: 1400px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            animation: fadeInUp 1s ease 0.3s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero-text h1 {
+            font-size: 4.5rem;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #fff, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fadeInUp 1s ease 0.5s both;
+        }
+
+        .hero-text .subtitle {
+            font-size: 1.3rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 2rem;
+            animation: fadeInUp 1s ease 0.7s both;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1.5rem;
+            animation: fadeInUp 1s ease 0.9s both;
+        }
+
+        .btn-primary, .btn-secondary {
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #fff;
+            box-shadow: 0 10px 30px rgba(0, 242, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 242, 255, 0.5);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #fff;
+            border: 2px solid var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 242, 255, 0.3);
+        }
+
+        .hero-visual {
+            position: relative;
+            animation: fadeInUp 1s ease 0.6s both;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(0, 242, 255, 0.1), rgba(123, 47, 247, 0.1));
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .glass-card:hover::before {
+            opacity: 1;
+        }
+
+        .terminal {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 15px;
+            padding: 1.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .terminal-header {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .terminal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .terminal-dot:nth-child(1) { background: #ff5f56; }
+        .terminal-dot:nth-child(2) { background: #ffbd2e; }
+        .terminal-dot:nth-child(3) { background: #27c93f; }
+
+        .terminal-line {
+            color: var(--primary);
+            margin: 0.5rem 0;
+            opacity: 0;
+            animation: terminalType 0.5s ease forwards;
+        }
+
+        .terminal-line:nth-child(2) { animation-delay: 0.2s; }
+        .terminal-line:nth-child(3) { animation-delay: 0.4s; }
+        .terminal-line:nth-child(4) { animation-delay: 0.6s; }
+        .terminal-line:nth-child(5) { animation-delay: 0.8s; }
+
+        @keyframes terminalType {
+            to {
+                opacity: 1;
+            }
+        }
+
+        .section {
+            padding: 8rem 5%;
+            position: relative;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 5rem;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+
+        .section-header.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .section-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section-subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2.5rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            padding: 2.5rem;
+            transition: all 0.4s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .feature-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .feature-card:hover::before {
+            opacity: 0.1;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(0, 242, 255, 0.3);
+            border-color: var(--primary);
+        }
+
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.4s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: rotateY(360deg) scale(1.1);
+            box-shadow: 0 10px 30px rgba(0, 242, 255, 0.5);
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #fff;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-card p {
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.8;
+            position: relative;
+            z-index: 1;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .pricing-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 3rem 2.5rem;
+            text-align: center;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .pricing-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .pricing-card.featured {
+            border: 2px solid var(--primary);
+            transform: scale(1.05);
+            background: linear-gradient(135deg, rgba(0, 242, 255, 0.1), rgba(123, 47, 247, 0.1));
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-15px);
+            box-shadow: 0 25px 70px rgba(0, 242, 255, 0.3);
+        }
+
+        .pricing-badge {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .pricing-card h3 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .pricing-price {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .pricing-period {
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 2rem;
+        }
+
+        .pricing-features {
+            list-style: none;
+            margin-bottom: 2.5rem;
+            text-align: left;
+        }
+
+        .pricing-features li {
+            padding: 0.8rem 0;
+            color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .pricing-features li::before {
+            content: '✓';
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .console-demo {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 3rem;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+
+        .console-demo.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .console-window {
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .console-titlebar {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .console-output {
+            padding: 2rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .console-line {
+            margin: 0.5rem 0;
+            opacity: 0;
+            animation: consoleFadeIn 0.3s ease forwards;
+        }
+
+        @keyframes consoleFadeIn {
+            to { opacity: 1; }
+        }
+
+        .console-line.success { color: #27c93f; }
+        .console-line.info { color: var(--primary); }
+        .console-line.warning { color: #ffbd2e; }
+
+        .console-controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2.5rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .testimonial-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            padding: 2.5rem;
+            transition: all 0.4s ease;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .testimonial-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .testimonial-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(0, 242, 255, 0.2);
+        }
+
+        .testimonial-rating {
+            color: #ffbd2e;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .testimonial-text {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+            font-style: italic;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .testimonial-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .testimonial-info h4 {
+            font-size: 1.1rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .testimonial-info p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+
+        footer {
+            background: var(--darker);
+            padding: 4rem 5%;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 3rem;
+        }
+
+        .footer-brand h3 {
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .footer-brand p {
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.8;
+        }
+
+        .footer-links h4 {
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            display: block;
+            padding: 0.5rem 0;
+            transition: all 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary);
+            padding-left: 10px;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 3rem;
+            margin-top: 3rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s ease;
+        }
+
+        .scroll-reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .mobile-toggle {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .mobile-toggle span {
+            width: 25px;
+            height: 3px;
+            background: #fff;
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 968px) {
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-toggle {
+                display: flex;
+            }
+
+            .hero-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .hero-text h1 {
+                font-size: 3rem;
+            }
+
+            .hero-buttons {
+                justify-content: center;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+
+            .section-title {
+                font-size: 2.5rem;
+            }
+
+            .features-grid,
+            .pricing-grid,
+            .testimonials-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<canvas id="particles"></canvas>
+
+<div id="loading-screen">
+    <div class="loader-container">
+        <div class="loader-ring"></div>
+        <div class="loader-ring"></div>
+        <div class="loader-ring"></div>
+    </div>
+    <div class="loading-text">Loading GiantBypass...</div>
+</div>
+
+<nav id="navbar">
+    <a href="#" class="logo">
+        <i class="fas fa-shield-alt"></i>
+        GiantBypass
+    </a>
+    <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#demo">Demo</a></li>
+        <li><a href="#testimonials">Testimonials</a></li>
+        <li><a href="#contact">Contact</a></li>
+    </ul>
+    <button class="cta-button"><span>Get Started</span></button>
+    <div class="mobile-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="hero-content">
+        <div class="hero-text">
+            <h1>Forensic‑Grade Trace Mitigation</h1>
+            <p class="subtitle">GiantBypass is an advanced deletion and trace‑mitigation suite engineered for forensic‑grade cleanup, red‑team operations, and authorized security research.</p>
+            <div class="hero-buttons">
+                <a href="#pricing" class="btn-primary">Start Being Undetected</a>
+                <a href="#demo" class="btn-secondary">Watch Demo</a>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="glass-card">
+                <div class="terminal">
+                    <div class="terminal-header">
+                        <div class="terminal-dot"></div>
+                        <div class="terminal-dot"></div>
+                        <div class="terminal-dot"></div>
+                    </div>
+                    <div class="terminal-line">> Initializing GiantBypass...</div>
+                    <div class="terminal-line">> Scanning file systems...</div>
+                    <div class="terminal-line">> Detecting 347 traces</div>
+                    <div class="terminal-line">> Shredding artifacts [████████] 100%</div>
+                    <div class="terminal-line">> Complete. 0 traces remaining.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="features" class="section">
+    <div class="section-header scroll-reveal">
+        <h2 class="section-title">Advanced Features</h2>
+        <p class="section-subtitle">Enterprise-grade cleanup technology designed for professionals</p>
+    </div>
+    <div class="features-grid">
+        <div class="feature-card scroll-reveal">
+            <div class="feature-icon">
+                <i class="fas fa-file-code"></i>
+            </div>
+            <h3>0‑Trace File Removal</h3>
+            <p>Unlinks, shreds, and overwrites target artifacts across file systems, registry hives, and common forensic caches with a configurable pass strategy.</p>
+        </div>
+        <div class="feature-card scroll-reveal">
+            <div class="feature-icon">
+                <i class="fas fa-lock"></i>
+            </div>
+            <h3>Encrypted Control Bus</h3>
+            <p>All internal actions are streamed through an encrypted control bus, minimizing surface exposure for analysis tools and sandbox scanners.</p>
+        </div>
+        <div class="feature-card scroll-reveal">
+            <div class="feature-icon">
+                <i class="fas fa-bolt"></i>
+            </div>
+            <h3>Lightning Fast</h3>
+            <p>Optimized algorithms target only high‑value traces, keeping wipe times under 30 seconds on modern hardware without bloated overhead.</p>
+        </div>
+        <div class="feature-card scroll-reveal">
+            <div class="feature-icon">
+                <i class="fas fa-cogs"></i>
+            </div>
+            <h3>Custom Profiles</h3>
+            <p>Ship ready‑made profiles for common environments (lab rigs, test VMs, competitive setups) and let users craft custom pipelines per machine.</p>
+        </div>
+        <div class="feature-card scroll-reveal">
+            <div class="feature-icon">
+                <i class="fas fa-shield-virus"></i>
+            </div>
+            <h3>Anti‑Cheat Compatible</h3>
+            <p>Specifically tuned for compatibility with major anti‑cheat systems, monitoring tools, and security scanners used in professional environments.</p>
+        </div>
+        <div class="feature-card scroll-reveal">
+            <div class="feature-icon">
+                <i class="fas fa-headset"></i>
+            </div>
+            <h3>24/7 Support</h3>
+            <p>Discord ticket‑based support with rapid response times. Full onboarding assistance and integration help for enterprise clients.</p>
+        </div>
+    </div>
+</section>
+
+<section id="pricing" class="section" style="background: rgba(0, 0, 0, 0.3);">
+    <div class="section-header scroll-reveal">
+        <h2 class="section-title">Flexible Pricing</h2>
+        <p class="section-subtitle">Choose the plan that fits your needs</p>
+    </div>
+    <div class="pricing-grid">
+        <div class="pricing-card scroll-reveal">
+            <h3>Weekly</h3>
+            <div class="pricing-price">$9.99</div>
+            <div class="pricing-period">per week</div>
+            <ul class="pricing-features">
+                <li>Full core engine access</li>
+                <li>1 device only</li>
+                <li>Community Discord access</li>
+                <li>Standard support</li>
+            </ul>
+            <button class="btn-primary" style="width: 100%;" onclick="window.location.href='https://nowpayments.io/payment/?iid=4861476537'">Get Started</button>
+        </div>
+        <div class="pricing-card featured scroll-reveal">
+            <div class="pricing-badge">MOST POPULAR</div>
+            <h3>Monthly</h3>
+            <div class="pricing-price">$19.99</div>
+            <div class="pricing-period">per month</div>
+            <ul class="pricing-features">
+                <li>Extended access</li>
+                <li>Best for ongoing projects</li>
+                <li>Faster responses on question</li>
+            </ul>
+            <button class="btn-primary" style="width: 100%;" onclick="window.location.href='https://nowpayments.io/payment/?iid=5080048613&paymentId=6308577780'">Get Started</button>
+        </div>
+        <div class="pricing-card scroll-reveal">
+            <h3>Yearly</h3>
+            <div class="pricing-price">$35</div>
+            <div class="pricing-period">per year</div>
+            <ul class="pricing-features">
+                <li>Full-year coverage</li>
+                <li>Up to 2 devices</li>
+                <li>Best value</li>
+                <li>Premium support-time</li>
+            </ul>
+            <button class="btn-primary" style="width: 100%;" onclick="window.location.href='https://nowpayments.io/payment/?iid=5696086039&paymentId=4449052785'">Get Started</button>
+        </div>
+    </div>
+</section>
+
+<section id="demo" class="section">
+    <div class="section-header scroll-reveal">
+        <h2 class="section-title">Live Console Demo</h2>
+        <p class="section-subtitle">See GiantBypass in action with our interactive demonstration</p>
+    </div>
+    <div class="console-demo scroll-reveal">
+        <div class="console-window">
+            <div class="console-titlebar">
+                <div class="terminal-dot"></div>
+                <div class="terminal-dot"></div>
+                <div class="terminal-dot"></div>
+                <span style="margin-left: 1rem; color: rgba(255,255,255,0.7);">GiantBypass Console v1.0.0</span>
+            </div>
+            <div class="console-output" id="console-output">
+                <div class="console-line info">[INFO] GiantBypass Console initialized</div>
+                <div class="console-line info">[INFO] Click 'Run Demo' to start cleanup simulation</div>
+            </div>
+        </div>
+        <div class="console-controls">
+            <button class="btn-primary" onclick="runConsoleDemo()">Run Demo</button>
+            <button class="btn-secondary" onclick="clearConsole()">Clear Console</button>
+        </div>
+    </div>
+</section>
+
+<section id="testimonials" class="section" style="background: rgba(0, 0, 0, 0.3);">
+    <div class="section-header scroll-reveal">
+        <h2 class="section-title">Trusted by Professionals</h2>
+        <p class="section-subtitle">What customers say about GiantBypass</p>
+    </div>
+    <div class="testimonials-grid">
+        <div class="testimonial-card scroll-reveal">
+            <div class="testimonial-rating">★★★★★</div>
+            <p class="testimonial-text">"Feels like a proper product, not a script bundle. Console logs are transparent and the support Discord is actually responsive."</p>
+            <div class="testimonial-author">
+                <div class="testimonial-avatar">CA</div>
+                <div class="testimonial-info">
+                    <h4>cloudyaqi</h4>
+                    <p>Verified</p>
+                </div>
+            </div>
+        </div>
+        <div class="testimonial-card scroll-reveal">
+            <div class="testimonial-rating">★★★★★</div>
+            <p class="testimonial-text">"GiantBypass is the only suite that reliably wipes the weird edge‑case traces our lab cares about. Short, controlled runs with perfect visibility."</p>
+            <div class="testimonial-author">
+                <div class="testimonial-avatar">CT</div>
+                <div class="testimonial-info">
+                    <h4>commotions_</h4>
+                    <p>Verified</p>
+                </div>
+            </div>
+        </div>
+        <div class="testimonial-card scroll-reveal">
+            <div class="testimonial-rating">★★★★★</div>
+            <p class="testimonial-text">"The profile system alone cut our prep time by half. Every rig in the room is one click away from a clean baseline."</p>
+            <div class="testimonial-author">
+                <div class="testimonial-avatar">PG</div>
+                <div class="testimonial-info">
+                    <h4>p3gn</h4>
+                    <p>Verified</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer id="contact">
+    <div class="footer-content">
+        <div class="footer-brand">
+            <h3>GiantBypass</h3>
+            <p>Advanced trace‑mitigation suite for controlled environments with explicit authorization. Built for red‑team operations, labs, and security research professionals.</p>
+        </div>
+        <div class="footer-links">
+            <h4>Product</h4>
+            <ul>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+                <li><a href="#demo">Demo</a></li>
+                <li><a href="https://discord.giantbypass.eu">Documentation</a></li>
+            </ul>
+        </div>
+        <div class="footer-links">
+            <h4>Company</h4>
+            <ul>
+                <li><a href="https://discord.giantbypass.eu">About</a></li>
+                <li><a href="https://discord.giantbypass.eu">Blog</a></li>
+                <li><a href="https://discord.giantbypass.eu">Contact</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2025 GiantBypass. All rights reserved. Intended for authorized security research only.</p>
+    </div>
+</footer>
+
+<script>
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            document.getElementById('loading-screen').classList.add('hidden');
+        }, 2000);
+    });
+
+    const canvas = document.getElementById('particles');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const particles = [];
+    const particleCount = 100;
+
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.vx = (Math.random() - 0.5) * 0.5;
+            this.vy = (Math.random() - 0.5) * 0.5;
+            this.size = Math.random() * 2;
+        }
+
+        update() {
+            this.x += this.vx;
+            this.y += this.vy;
+
+            if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+            if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+        }
+
+        draw() {
+            ctx.fillStyle = 'rgba(0, 242, 255, 0.5)';
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    for (let i = 0; i < particleCount; i++) {
+        particles.push(new Particle());
+    }
+
+    function animateParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(particle => {
+            particle.update();
+            particle.draw();
+        });
+
+        for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+                const dx = particles[i].x - particles[j].x;
+                const dy = particles[i].y - particles[j].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < 150) {
+                    ctx.strokeStyle = `rgba(0, 242, 255, ${0.2 * (1 - distance / 150)})`;
+                    ctx.lineWidth = 0.5;
+                    ctx.beginPath();
+                    ctx.moveTo(particles[i].x, particles[i].y);
+                    ctx.lineTo(particles[j].x, particles[j].y);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        requestAnimationFrame(animateParticles);
+    }
+
+    animateParticles();
+
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
+
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.scroll-reveal, .feature-card, .pricing-card, .testimonial-card, .section-header, .console-demo').forEach(el => {
+        observer.observe(el);
+    });
+
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 50) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+
+    let demoRunning = false;
+
+    function runConsoleDemo() {
+        if (demoRunning) return;
+        demoRunning = true;
+
+        const output = document.getElementById('console-output');
+        const messages = [
+            { text: '[INIT] Starting GiantBypass cleanup process...', class: 'info', delay: 500 },
+            { text: '[SCAN] Analyzing file system for artifacts...', class: 'info', delay: 800 },
+            { text: '[FOUND] 347 trace files detected', class: 'warning', delay: 1200 },
+            { text: '[FOUND] 129 registry entries detected', class: 'warning', delay: 1500 },
+            { text: '[FOUND] 52 cached forensic artifacts', class: 'warning', delay: 1800 },
+            { text: '[CLEAN] Shredding file artifacts [████████] 100%', class: 'success', delay: 2500 },
+            { text: '[CLEAN] Wiping registry traces [████████] 100%', class: 'success', delay: 3200 },
+            { text: '[CLEAN] Clearing forensic caches [████████] 100%', class: 'success', delay: 3900 },
+            { text: '[VERIFY] Running integrity check...', class: 'info', delay: 4500 },
+            { text: '[SUCCESS] Cleanup complete. 0 traces remaining.', class: 'success', delay: 5200 },
+            { text: '[METRICS] Time elapsed: 28.4 seconds', class: 'info', delay: 5700 },
+            { text: '[METRICS] Data shredded: 1.8 GB', class: 'info', delay: 6000 }
+        ];
+
+        messages.forEach((msg, index) => {
+            setTimeout(() => {
+                const line = document.createElement('div');
+                line.className = `console-line ${msg.class}`;
+                line.textContent = msg.text;
+                line.style.animationDelay = '0s';
+                output.appendChild(line);
+                output.scrollTop = output.scrollHeight;
+
+                if (index === messages.length - 1) {
+                    demoRunning = false;
+                }
+            }, msg.delay);
+        });
+    }
+
+    function clearConsole() {
+        const output = document.getElementById('console-output');
+        output.innerHTML = '<div class="console-line info">[INFO] Console cleared. Ready for next operation.</div>';
+        demoRunning = false;
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+</script>
+</body>
+</html>
